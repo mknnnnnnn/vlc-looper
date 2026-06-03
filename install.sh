@@ -25,12 +25,28 @@ else
     fi
 fi
 
-if ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" '
+if ! ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}"; then
+    echo 'Raspberry Pi is not configured'
+    exit 1
+fi
+
+if ! ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" '
 echo "Connected to Raspberry Pi"
+
+    if ! command -v vlc >/dev/null 2>&1; then
+        echo "VLC not found. Installing..."
+
+        if ! sudo apt update || ! sudo apt install -y vlc; then
+            echo "Failed to install VLC"
+            exit 1
+        else
+            echo "VLC has been installed"
+        fi
+    else
+        echo "VLC is already installed"
+    fi
 sudo -n reboot >/dev/null 2>&1 &
 '; then
-    echo "Raspberry Pi is configured"
-else
-    echo 'Raspberry Pi is not configured'
+    echo "Raspberry Pi configuration failed"
     exit 1
 fi
