@@ -1,45 +1,49 @@
 #!/bin/bash
 
-if [[ "$1" == "--server" ]]; then
-  SERVER_NAME="$2"
-  echo "Server name: $2"
-else
-  echo "Usage: $0 --server user@host --file ./file"
+if [[ -z "$1" || "$1" != *@* ]]; then
+  echo "Usage: $0 user@host --file /path/to/file"
   exit 1
 fi
 
-SERVER_IP="${SERVER_NAME#*@}"
-SSH_USER="${SERVER_NAME%*@}"
+SERVER_NAME="$1"
 
-SSH_KEY="$HOME/.ssh/id_rsa"
+SERVER_IP="${SERVER_NAME#*@}"
+SSH_USER="${SERVER_NAME%@*}"
+
+SSH_KEY="$HOME/.ssh/${SERVER_IP}_ed25519"
 
 if [[ ! -f "$SSH_KEY" ]]; then
-  echo "Default SSH Key path not found"
-else
-  echo "Default SSH Key path: ${SSH_KEY}"
+  echo "SSH Key path not found: $SSH_KEY"
+  exit 1
 fi
 
-if [[ "$3" == "--file" ]]; then
-  FILE_TO_SEND="$4"
+if [[ "$2" == "--file" && -n "$3" ]]; then
+  FILE_TO_SEND="$3"
+else
+  echo "Usage: $0 user@host --file /path/to/file"
+  exit 1 
 fi
 
 if [[ ! -f "$FILE_TO_SEND" ]]; then
-  echo "File does not exists: $FILE_TO_SEND"
+  echo "File does not exist: $FILE_TO_SEND"
   exit 1
 fi
 
-DEST_FILE_PATH="~/" 
-echo "Default destination $DEST_FILE_PATH"
-  
-echo "Processing: $SERVER_NAME"
+DEST_FILE_PATH="~/"
 
-if scp -i "$SSH_KEY" "$FILE_TO_SEND" "$SSH_USER@$SERVER_IP:$DEST_FILE_PATH"; then
-  ssh -i "$SSH_KEY" "$SSH_USER@$SERVER_IP" "sudo reboot"
+echo -e "Default destination ${DEST_FILE_PATH}\n"
+echo "Processing $SERVER_NAME"
+
+if scp -i "$SSH_KEY" "$FILE_TO_SEND" "${SSH_USER}@${SERVER_IP}:${DEST_FILE_PATH}"; then
+  if ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" "sudo reboot"; then
+    echo "File transfer and reboot on $SERVER_NAME completed"
+    echo
+    echo "Script finished"
+  else
+    echo "File was transferred, but reboot failed"
+    exit 1
+  fi
 else
-  echo "Error"
+  echo "File transfer failed"
   exit 1
 fi
-
-echo -e "File transfer and reboot on $SERVER_NAME completed\n"
-
-echo "Script finished"
