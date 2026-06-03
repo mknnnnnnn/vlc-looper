@@ -1,0 +1,12 @@
+[Unit]
+Description=VLC
+After=graphical.target
+
+[Service]
+ExecStart=/usr/bin/vlc --no-video-deco --no-video-title-show --no-embedded-video --fullscreen --no-interact --intf dummy --repeat /home/__USER__/video.mp4
+Restart=always
+User=__USER__
+Group=__USER__
+
+[Install]
+WantedBy=graphical.target
