@@ -71,6 +71,7 @@ fi
 
 if ! scp -i "$SSH_KEY" VLC.service.tmp "${SSH_USER}@${SERVER_IP}":~/VLC.service; then
     echo "Raspberry Pi configuration failed"
+    rm -f VLC.service.tmp
     exit 1
 fi
 
@@ -81,9 +82,9 @@ if ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" '
     sudo -n systemctl enable VLC.service
 '; then
     echo "VLC service configured"
-    rm -f VLC.service.tmp
 else
     echo "Raspberry Pi configuration failed"
-    rm -f VLC.service.tmp
     exit 1
 fi
+
+rm -f VLC.service.tmp
