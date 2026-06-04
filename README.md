@@ -30,19 +30,19 @@ sudo chmod +x install.sh
 Run the script with the Raspberry Pi SSH address, a video file path, and one timer option:
 
 ```bash
-./vlc-looper.sh user@raspberry-pi-ip /path/to/video.mp4 ( --on HH:MM:SS --off HH:MM:SS | --disable-timer )
+./install.sh user@raspberry-pi-ip /path/to/video.mp4 ( --on HH:MM:SS --off HH:MM:SS | --disable-timer )
 ```
 
 Example with backlight scheduling enabled:
 
 ```bash
-./vlc-looper.sh pi@192.168.1.100 ./video.mp4 --on 05:00:00 --off 15:00:00
+./install.sh pi@192.168.1.100 ./video.mp4 --on 05:00:00 --off 15:00:00
 ```
 
 Example with backlight scheduling disabled:
 
 ```bash 
-./vlc-looper.sh pi@192.168.1.100 ./video.mp4 --disable-timer
+./install.sh pi@192.168.1.100 ./video.mp4 --disable-timer
 ```
 
 ## Notes
