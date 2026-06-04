@@ -4,10 +4,10 @@ BACKLIGHT_PATH=/sys/class/backlight/10-0045
 
 case "$1" in
 	on)
-	echo 0 | sudo tee "$BACKLIGHT_PATH/bl_power" > dev/null
+	echo 0 | sudo tee "$BACKLIGHT_PATH/bl_power" > /dev/null
 	;;
 	off)
-	echo 1 | sudo tee "$BACKLIGHT_PATH/bl_power" > dev/null 
+	echo 1 | sudo tee "$BACKLIGHT_PATH/bl_power" > /dev/null 
 	;;
 	*)
 	exit 1

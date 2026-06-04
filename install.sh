@@ -3,7 +3,7 @@
 # VLC Looper is a script for automatically preparing a device to play a video file in a loop using VLC.
 
 if [[ -z "$1" || "$1" != *@* ]]; then
-    echo "Example: $0 user@example.com /path/to/file [ --on "05:00:00" --off "15:00:00" ]"
+    echo "Example: $0 user@example.com /path/to/file [ --on 05:00:00 --off 15:00:00 ]"
     exit 1
 fi
 
@@ -157,6 +157,8 @@ else
     echo "Raspberry Pi configuration failed"
     exit 1
 fi
+
+ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" 'sudo -n reboot >/dev/null 2>&1 &'
 
 echo "Raspberry Pi has been successfully configured"
 
