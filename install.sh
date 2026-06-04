@@ -3,7 +3,7 @@
 # VLC Looper is a script for automatically preparing a device to play a video file in a loop using VLC.
 
 if [[ -z "$1" || "$1" != *@* ]]; then
-    echo "Example: $0 user@example.com /path/to/file [ --on 05:00:00 --off 15:00:00 ]"
+    echo "Example: $0 user@example.com /path/to/file ( --on 05:00:00 --off 15:00:00 | --disable-timer )"
     exit 1
 fi
 
@@ -16,9 +16,10 @@ if [[ ! -f "$SSH_KEY" ]]; then
     if ! ssh-keygen -t ed25519 -C "${SSH_USER}_${SERVER_IP}_VLC_LOOPER" -f "$SSH_KEY"; then
         echo "Key generation failed"
         exit 1
+    else 
+        echo "Key generated successfully"
     fi
 fi
- 
  
 if ! ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" ""; then
     echo 'Raspberry Pi is not configured'
@@ -28,7 +29,7 @@ fi
 # Upload video file
 
 if [[ -z "$2" ]]; then
-    echo "Example: $0 user@example.com /path/to/file [ --on 05:00:00 --off 15:00:00 ]"
+    echo "Example: $0 user@example.com /path/to/file ( --on 05:00:00 --off 15:00:00 | --disable-timer )"
     exit 1
 fi
 
@@ -93,38 +94,53 @@ rm -f VLC.service.tmp
 
 # Backlight service configuration
 
-# Set turn on time
+if [[ "$3" == "--disable-timer" ]]; then
+    DISABLE_TIMER=true
+elif [[ "$3" == "--on" && "$5" == "--off" ]]; then
+    DISABLE_TIMER=false
+else
+    echo "Example: $0 user@example.com /path/to/file ( --on 05:00:00 --off 15:00:00 | --disable-timer )"
+    exit 1
+fi
 
-if [[ "$3" == "--on" ]]; then
-    if [[ "$4" == ??:??:?? ]]; then
-        if sed "s/^OnCalendar=.*/OnCalendar=*-*-* $4/" backlight-on.timer > backlight-on.timer.tmp; then
-            mv backlight-on.timer.tmp backlight-on.timer
+# Set turn on / off time
+
+if [[ "$DISABLE_TIMER" == false ]]; then
+    if [[ "$3" == "--on" ]]; then
+        if [[ "$4" == ??:??:?? ]]; then
+            if sed "s/^OnCalendar=.*/OnCalendar=*-*-* $4/" backlight-on.timer > backlight-on.timer.tmp; then
+                mv backlight-on.timer.tmp backlight-on.timer
+            else
+                echo "Failed to update backlight-on.timer"
+                rm -f backlight-on.timer.tmp
+                exit 1
+            fi
         else
-            echo "Failed to update backlight-on.timer"
-            rm -f backlight-on.timer.tmp
+            echo "Bad input value: $4"
+            exit 1  
+        fi
+    fi
+
+    if [[ "$5" == "--off" ]]; then
+        if [[ "$6" == ??:??:?? ]]; then
+            if sed "s/^OnCalendar=.*/OnCalendar=*-*-* $6/" backlight-off.timer > backlight-off.timer.tmp; then
+                mv backlight-off.timer.tmp backlight-off.timer
+            else
+                echo "Failed to update backlight-off.timer"
+                rm -f backlight-off.timer.tmp
+                exit 1
+            fi
+        else
+            echo "Bad input value: $6"
             exit 1
         fi
-    else
-        echo "Bad input value: $4"
-        exit 1  
     fi
 fi
 
-# Set turn off time
-
-if [[ "$5" == "--off" ]]; then
-    if [[ "$6" == ??:??:?? ]]; then
-        if sed "s/^OnCalendar=.*/OnCalendar=*-*-* $6/" backlight-off.timer > backlight-off.timer.tmp; then
-            mv backlight-off.timer.tmp backlight-off.timer
-        else
-            echo "Failed to update backlight-off.timer"
-            rm -f backlight-off.timer.tmp
-            exit 1
-        fi
-    else
-        echo "Bad input value: $6"
-        exit 1
-    fi
+if [[ "$DISABLE_TIMER" == true ]]; then
+    TIMER="sudo -n systemctl disable --now backlight-on.timer backlight-off.timer"
+else
+    TIMER="sudo -n systemctl enable --now backlight-on.timer backlight-off.timer"
 fi
 
 if ! scp -i "$SSH_KEY" backlight-off.timer backlight-on.timer backlight@.service backlightctl "${SSH_USER}@${SERVER_IP}":~/; then
@@ -132,7 +148,7 @@ if ! scp -i "$SSH_KEY" backlight-off.timer backlight-on.timer backlight@.service
     exit 1
 fi
 
-if ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" '
+if ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" "
     cd ~
     
     sudo -n chmod +x backlightctl
@@ -140,8 +156,8 @@ if ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" '
     sudo -n mv backlight-off.timer backlight-on.timer backlight@.service /etc/systemd/system/
 
     sudo -n systemctl daemon-reload
-    sudo -n systemctl enable --now backlight-off.timer backlight-on.timer
-'; then
+    $TIMER
+"; then
     echo "Backlight service configured"
 else
     echo "Raspberry Pi configuration failed"
@@ -160,7 +176,7 @@ else
     exit 1
 fi
 
-ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" 'sudo -n reboot >/dev/null 2>&1 &'
+ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" 'sudo -n reboot >/dev/null 2>&1 &' || true
 
 echo "Raspberry Pi has been successfully configured"
 

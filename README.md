@@ -2,7 +2,7 @@
 
 VLC Looper is a script for automatically preparing a device to play a video file in a loop using VLC.
 
-The program configures access via SSH keys, installs VLC, uploads the presentation file to a remote device, starts playback, and allows you to set the screen turn-on and turn-off time. **Screen turn-on and turn-off scheduling is supported only for devices connected via DSI.**
+The program configures access via SSH keys, installs VLC, uploads the presentation file to a remote device, starts playback, and allows you to set or disable the screen turn-on and turn-off timers. **Screen turn-on and turn-off scheduling is supported only for devices connected via DSI.**
 
 ## Features
 
@@ -13,32 +13,27 @@ The program configures access via SSH keys, installs VLC, uploads the presentati
 - automatically starts the presentation in VLC,
 - plays the presentation in a loop,
 - allows setting the screen turn-on time,
-- allows setting the screen turn-off time.
+- allows setting the screen turn-off time,
+- allows disabling the screen turn-on and turn-off timers.
 
 ## Usage
 
-Run the script with the Raspberry Pi SSH address and a video file path:
-
-```bash 
-./vlc-looper.sh user@raspberry-pi-ip /path/to/video.mp4 
-```
-Example:
+Run the script with the Raspberry Pi SSH address, a video file path, and one timer option:
 
 ```bash
- ./vlc-looper.sh pi@192.168.1.100 ./video.mp4 
+./vlc-looper.sh user@raspberry-pi-ip /path/to/video.mp4 ( --on HH:MM:SS --off HH:MM:SS | --disable-timer )
 ```
 
-### Schedule backlight on/off time
+Example with backlight scheduling enabled:
 
-You can set the display backlight turn on and turn off time using --on and --off flags:
-
-```bash 
-./vlc-looper.sh user@raspberry-pi-ip /path/to/video.mp4 --on 05:00:00 --off 15:00:00 
+```bash
+./vlc-looper.sh pi@192.168.1.100 ./video.mp4 --on 05:00:00 --off 15:00:00
 ```
-Example:
+
+Example with backlight scheduling disabled:
 
 ```bash 
-./vlc-looper.sh pi@192.168.1.50 ./video.mp4 --on 05:00:00 --off 23:00:00 
+./vlc-looper.sh pi@192.168.1.100 ./video.mp4 --disable-timer
 ```
 
 ## Notes
