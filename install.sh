@@ -3,7 +3,7 @@
 # VLC Looper is a script for automatically preparing a device to play a video file in a loop using VLC.
 
 if [[ -z "$1" || "$1" != *@* ]]; then
-    echo "Example: $0 user@example.com /path/to/file"
+    echo "Example: $0 user@example.com /path/to/file [ --on "05:00:00" --off "15:00:00" ]"
     exit 1
 fi
 
@@ -89,6 +89,41 @@ fi
 rm -f VLC.service.tmp
 
 # Backlight service configuration
+
+# Set turn on time
+
+if [[ "$3" == "--on" ]]; then
+    if [[ "$4" == ??:??:?? ]]; then
+        if sed "s/^OnCalendar=.*/OnCalendar=*-*-* $4/" backlight-on.timer > backlight-on.timer.tmp; then
+            mv backlight-on.timer.tmp backlight-on.timer
+        else
+            echo "Failed to update backlight-on.timer"
+            rm -f backlight-on.timer.tmp
+            exit 1
+        fi
+    else
+        echo "Bad input value: $4"
+        exit 1  
+    fi
+fi
+
+# Set turn off time
+
+if [[ "$5" == "--off" ]]; then
+    if [[ "$6" == ??:??:?? ]]; then
+        if sed "s/^OnCalendar=.*/OnCalendar=*-*-* $6/" backlight-off.timer > backlight-off.timer.tmp; then
+            mv backlight-off.timer.tmp backlight-off.timer
+        else
+            echo "Failed to update backlight-off.timer"
+            rm -f backlight-off.timer.tmp
+            exit 1
+        fi
+    else
+        echo "Bad input value: $6"
+        exit 1
+    fi
+fi
+
 
 if ! scp -i "$SSH_KEY" backlight-off.timer backlight-on.timer backlight@.service backlightctl "${SSH_USER}@${SERVER_IP}":~/; then
     echo "Raspberry Pi configuration failed"

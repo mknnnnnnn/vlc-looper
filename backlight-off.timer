@@ -1,5 +1,5 @@
 [Unit]
-Description=Backlight OFF at 15:00
+Description=Backlight OFF
 
 [Timer]
 OnCalendar=*-*-* 15:00:00
