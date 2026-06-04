@@ -34,7 +34,7 @@ if [[ ! -f "$SSH_KEY" ]]; then
     fi
 fi
  
-if ! ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" ""; then
+if ! ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" "true"; then
     echo 'Raspberry Pi is not configured'
     exit 1
 fi
