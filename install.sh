@@ -146,3 +146,17 @@ else
     exit 1
 fi
 
+# Turn off password authentication
+
+if ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" '
+    sudo -n sed -i "s/^#\?passwordauthentication .*/PasswordAuthentication no/I" /etc/ssh/sshd_config
+    sudo -n systemctl restart ssh
+'; then
+    echo "Password authentication has been turned off"
+else
+    echo "Raspberry Pi configuration failed"
+    exit 1
+fi
+
+echo "Raspberry Pi has been successfully configured"
+
