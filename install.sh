@@ -90,14 +90,18 @@ rm -f VLC.service.tmp
 
 # Backlight service configuration
 
-if ! scp -i "$SSH_KEY" backlight-off.timer backlight-on.timer backlight@.service "${SSH_USER}@${SERVER_IP}":~/; then
+if ! scp -i "$SSH_KEY" backlight-off.timer backlight-on.timer backlight@.service backlightctl "${SSH_USER}@${SERVER_IP}":~/; then
     echo "Raspberry Pi configuration failed"
     exit 1
 fi
 
 if ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" '
     cd ~
+    
+    sudo -n chmod +x backlightctl
+    sudo -n mv backlightctl /usr/bin/
     sudo -n mv backlight-off.timer backlight-on.timer backlight@.service /etc/systemd/system/
+
     sudo -n systemctl daemon-reload
     sudo -n systemctl enable --now backlight-off.timer backlight-on.timer
 '; then
@@ -106,3 +110,4 @@ else
     echo "Raspberry Pi configuration failed"
     exit 1
 fi
+
