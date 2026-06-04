@@ -27,18 +27,21 @@ fi
 
 # Upload video file
 
-if [[ -n "$2" ]]; then
-    if [[ -f "$2" ]]; then
-        if scp -i "$SSH_KEY" "$2" "${SSH_USER}@${SERVER_IP}:~/video.mp4"; then
-            echo "File has been sent"
-        else
-            echo "File send failed"
-            exit 1
-        fi
+if [[ -z "$2" ]]; then
+    echo "Example: $0 user@example.com /path/to/file [ --on 05:00:00 --off 15:00:00 ]"
+    exit 1
+fi
+
+if [[ -f "$2" ]]; then
+    if scp -i "$SSH_KEY" "$2" "${SSH_USER}@${SERVER_IP}:~/video.mp4"; then
+        echo "File has been sent"
     else
-        echo "File does not exist"
+        echo "File send failed"
         exit 1
     fi
+else
+    echo "File does not exist"
+    exit 1
 fi
 
 # VLC configuration
@@ -123,7 +126,6 @@ if [[ "$5" == "--off" ]]; then
         exit 1
     fi
 fi
-
 
 if ! scp -i "$SSH_KEY" backlight-off.timer backlight-on.timer backlight@.service backlightctl "${SSH_USER}@${SERVER_IP}":~/; then
     echo "Raspberry Pi configuration failed"
