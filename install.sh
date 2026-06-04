@@ -1,33 +1,42 @@
 #!/bin/bash
 
 if [[ -z "$1" || "$1" != *@* ]]; then
-    echo "Example: $0 user@host [--key-path /path/to/key]"
+    echo "Example: $0 user@example.com /path/to/file"
     exit 1
 fi
 
 SERVER_IP="${1#*@}"
 SSH_USER="${1%@*}"
 
-if [[ "$2" == '--key-path' && -n "$3" ]]; then
-    if [[ ! -f "$3" ]]; then
-        echo "Key path does not exist: $3"
+SSH_KEY="$HOME/.ssh/${SSH_USER}_${SERVER_IP}_ed25519"
+
+if [[ ! -f "$SSH_KEY" ]]; then
+    if ! ssh-keygen -t ed25519 -C "${SSH_USER}_${SERVER_IP}_VLC_LOOPER" -f "$SSH_KEY"; then
+        echo "Key generation failed"
         exit 1
     fi
-    SSH_KEY="$3"
-
-else
-    SSH_KEY="$HOME/.ssh/${SSH_USER}_ed25519"
-
-    if [[ ! -f "$SSH_KEY" ]]; then
-        if ! ssh-keygen -t ed25519 -C "${SSH_USER}_VLC_LOOPER" -f "$SSH_KEY"; then
-            exit 1
-        fi
-    fi
 fi
-
-if ! ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}"; then
+ 
+ 
+if ! ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" ""; then
     echo 'Raspberry Pi is not configured'
     exit 1
+fi
+
+# Upload video file
+
+if [[ -n "$2" ]]; then
+    if [[ -f "$2" ]]; then
+        if scp -i "$SSH_KEY" "$2" "${SSH_USER}@${SERVER_IP}:~/"; then
+            echo "File has been sent"
+        else
+            echo "File send failed"
+            exit 1
+        fi
+    else
+        echo "File does not exist"
+        exit 1
+    fi
 fi
 
 # VLC config
@@ -47,7 +56,7 @@ echo "Connected to Raspberry Pi"
     else
         echo "VLC configured"
     fi
-sudo -n reboot >/dev/null 2>&1 &
+
 '; then
     echo "Raspberry Pi configuration failed"
     exit 1
@@ -55,7 +64,7 @@ fi
 
 # Upload VLC service file
 
-if ! sed "s/USER/${SSH_USER}/g" VLC.service > VLC.service.tmp; then
+if ! sed "s/__USER__/${SSH_USER}/g" VLC.service > VLC.service.tmp; then
     echo "VLC.service should be in root file project"
     exit 1
 fi
