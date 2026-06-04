@@ -1,0 +1,6 @@
+[Unit]
+Description=Backlight %i
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/backlightctl %i

@@ -1,0 +1,10 @@
+[Unit]
+Description=Backlight ON at 05:00
+
+[Timer]
+OnCalendar=*-*-* 05:00:00
+Persistent=false
+Unit=backlight@on.service
+
+[Install]
+WantedBy=timers.target

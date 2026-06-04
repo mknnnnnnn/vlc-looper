@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# VLC Looper is a script for automatically preparing a device to play a video file in a loop using VLC.
+
 if [[ -z "$1" || "$1" != *@* ]]; then
     echo "Example: $0 user@example.com /path/to/file"
     exit 1
@@ -39,30 +41,27 @@ if [[ -n "$2" ]]; then
     fi
 fi
 
-# VLC config
+# VLC configuration
 
 if ! ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" '
-echo "Connected to Raspberry Pi"
+if ! command -v vlc >/dev/null 2>&1; then
+    echo "VLC not found. Installing..."
 
-    if ! command -v vlc >/dev/null 2>&1; then
-        echo "VLC not found. Installing..."
-
-        if ! sudo -n apt update || ! sudo -n apt install -y vlc; then
-            echo "Failed to install VLC"
-            exit 1
-        else
-            echo "VLC has been installed"
-        fi
+    if ! sudo -n apt update || ! sudo -n apt install -y vlc; then
+        echo "Failed to install VLC"
+        exit 1
     else
-        echo "VLC configured"
+        echo "VLC has been installed"
     fi
-
+else
+    echo "VLC configured"
+fi
 '; then
     echo "Raspberry Pi configuration failed"
     exit 1
 fi
 
-# Upload VLC service file
+# VLC service configuration
 
 if ! sed "s/__USER__/${SSH_USER}/g" VLC.service > VLC.service.tmp; then
     echo "VLC.service should be in root file project"
@@ -88,3 +87,22 @@ else
 fi
 
 rm -f VLC.service.tmp
+
+# Backlight service configuration
+
+if ! scp -i "$SSH_KEY" backlight-off.timer backlight-on.timer backlight@.service "${SSH_USER}@${SERVER_IP}":~/; then
+    echo "Raspberry Pi configuration failed"
+    exit 1
+fi
+
+if ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER_IP}" '
+    cd ~
+    sudo -n mv backlight-off.timer backlight-on.timer backlight@.service /etc/systemd/system/
+    sudo -n systemctl daemon-reload
+    sudo -n systemctl enable --now backlight-off.timer backlight-on.timer
+'; then
+    echo "Backlight service configured"
+else
+    echo "Raspberry Pi configuration failed"
+    exit 1
+fi
