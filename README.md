@@ -16,6 +16,15 @@ The program configures access via SSH keys, installs VLC, uploads the presentati
 - allows setting the screen turn-off time,
 - allows disabling the screen turn-on and turn-off timers.
 
+## Installation
+Before running the script, make it executable:
+
+```bash
+git clone https://github.com/mknnnnnnn/vlc-looper.git
+cd vlc-looper
+sudo chmod +x install.sh
+```
+
 ## Usage
 
 Run the script with the Raspberry Pi SSH address, a video file path, and one timer option:
