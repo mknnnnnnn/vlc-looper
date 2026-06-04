@@ -27,7 +27,7 @@ fi
 
 if [[ -n "$2" ]]; then
     if [[ -f "$2" ]]; then
-        if scp -i "$SSH_KEY" "$2" "${SSH_USER}@${SERVER_IP}:~/"; then
+        if scp -i "$SSH_KEY" "$2" "${SSH_USER}@${SERVER_IP}:~/video.mp4"; then
             echo "File has been sent"
         else
             echo "File send failed"
