@@ -2,7 +2,9 @@
 
 VLC Looper is a script for automatically preparing a device to play a video file in a loop using VLC.
 
-The program configures access via SSH keys, installs VLC, uploads the presentation file to a remote device, starts playback, and allows you to set or disable the screen turn-on and turn-off timers. **Screen turn-on and turn-off scheduling is supported only for devices connected via DSI.**
+The program configures access via SSH keys, installs VLC, uploads the presentation file to a remote device, starts playback, and allows you to set or disable the screen turn-on and turn-off timers. 
+
+Screen turn-on and turn-off scheduling is supported only for devices connected via DSI.
 
 ## Features
 
